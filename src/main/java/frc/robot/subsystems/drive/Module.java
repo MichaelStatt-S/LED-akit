@@ -91,6 +91,10 @@ public class Module {
     io.setDriveOpenLoop(0.0);
     io.setTurnOpenLoop(0.0);
   }
+  /** break */
+  void brake() {
+    io.brake();
+  }
 
   /** Returns the current turn angle of the module. */
   public Rotation2d getAngle() {

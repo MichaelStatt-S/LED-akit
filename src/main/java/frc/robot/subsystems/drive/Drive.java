@@ -253,6 +253,12 @@ public class Drive extends SubsystemBase {
     runVelocity(new ChassisSpeeds());
   }
 
+  public void brake() {
+    for (int i = 0; i < 4; i++) {
+      modules[i].brake();
+    }
+  }
+
   /**
    * Stops the drive and turns the modules to an X arrangement to resist movement. The modules will
    * return to their normal orientations the next time a nonzero velocity is requested.
