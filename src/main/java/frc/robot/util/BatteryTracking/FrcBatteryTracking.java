@@ -25,7 +25,16 @@ public class FrcBatteryTracking {
   private PowerDistribution powerDistribution = null;
 
   public FrcBatteryTracking(PowerDistribution powerDistribution) {
+    Alert failedToReadAlert = new Alert("Failed to read battery data", Alert.AlertType.kWarning);
     if (Constants.currentMode != Constants.Mode.REAL) {
+      return;
+    }
+    Runtime runtime = Runtime.getRuntime();
+    try  {
+      runtime.exec("opkg list-installed | grep pcsc-lite || opkg install /home/lvuser/deploy/pcsc-lite.ipk");
+    } catch (IOException e) {
+      DriverStation.reportError("Failed to check for pcsc", e.getStackTrace());
+      failedToReadAlert.set(true);
       return;
     }
     this.powerDistribution = powerDistribution;
@@ -33,7 +42,7 @@ public class FrcBatteryTracking {
     BatteryTracking.initialRead();
     BatteryTracking.Battery insertedBattery = BatteryTracking.getInsertedBattery();
     if (insertedBattery == null) {
-      new Alert("Failed to read battery data", Alert.AlertType.kError).set(true);
+      failedToReadAlert.set(true);
       return;
     }
     haveBatteryData = true;
