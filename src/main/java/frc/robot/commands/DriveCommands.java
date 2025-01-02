@@ -77,8 +77,8 @@ public class DriveCommands {
           Translation2d linearVelocity =
               getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
           if (linearVelocity.getNorm() < 0.1) {
-              drive.brake();
-              return;
+            drive.brake();
+            return;
           }
 
           // Apply rotation deadband

@@ -79,6 +79,7 @@ public class BatteryTracking {
     }
     if (asyncThread == null) {
       asyncThread = new Thread(new BatteryRunner(usageSupplierAH, getInsertedBattery()));
+      asyncThread.setName("Battery Tracking Thread");
       asyncThread.start();
     } else {
       ERROR_HANDLER.consumeError("Automatic writes thread attempted to start multiple times!");
@@ -204,14 +205,14 @@ public class BatteryTracking {
   /** Represents a battery with its data */
   public static class Battery {
 
-    private int id;
-    private String name;
-    private int year;
-    private double testedCapacityAH;
+    private final int id;
+    private final String name;
+    private final int year;
+    private final double testedCapacityAH;
     private double sessionUsageAH = 0;
     private double initialUsageAH;
     private List<LogEntry> log;
-    private boolean hasNewLog;
+    private boolean hasNewLog = false;
 
     public Battery(
         int id,
@@ -466,7 +467,7 @@ public class BatteryTracking {
     private static final int WAIT_FOR_CARD_TIMEOUT_MS = 1_000;
 
     private static final int MAX_WRITABLE_BYTES =
-        BLOCKS_TO_USE_PER_SECTOR * BLOCKS_PER_SECTOR * BYTES_PER_BLOCK - 4;
+        BLOCKS_TO_USE_PER_SECTOR * (SECTORS - 1) * BYTES_PER_BLOCK - 4;
 
     /** Utility class */
     private NFCUtils() {}

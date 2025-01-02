@@ -252,8 +252,9 @@ public class ModuleIOTalonFX implements ModuleIO {
               rotation.getRotations());
         });
   }
+
   @Override
-  public void brake () {
+  public void brake() {
     turnTalon.setControl(neutralRequest);
   }
 }

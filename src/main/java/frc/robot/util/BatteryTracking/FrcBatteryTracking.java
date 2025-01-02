@@ -29,14 +29,6 @@ public class FrcBatteryTracking {
     if (Constants.currentMode != Constants.Mode.REAL) {
       return;
     }
-    Runtime runtime = Runtime.getRuntime();
-    try  {
-      runtime.exec("opkg list-installed | grep pcsc-lite || opkg install /home/lvuser/deploy/pcsc-lite.ipk");
-    } catch (IOException e) {
-      DriverStation.reportError("Failed to check for pcsc", e.getStackTrace());
-      failedToReadAlert.set(true);
-      return;
-    }
     this.powerDistribution = powerDistribution;
     BatteryTracking.ERROR_HANDLER = new DriverStationLogger();
     BatteryTracking.initialRead();
@@ -48,10 +40,11 @@ public class FrcBatteryTracking {
     haveBatteryData = true;
     Logger.recordOutput("Battery/Id", insertedBattery.getId());
     Logger.recordOutput("Battery/Name", insertedBattery.getName());
-    Logger.recordOutput("Battery/Year", insertedBattery.getName());
-    Logger.recordOutput("Battery/InitialUsageAH", insertedBattery.getName());
+    Logger.recordOutput("Battery/Year", insertedBattery.getYear());
+    Logger.recordOutput("Battery/InitialUsageAH", insertedBattery.getInitialUsageAH());
     Logger.recordOutput(
         "Battery/LastUsed", insertedBattery.getLog().get(0).getDateTime().toString());
+    BatteryTracking.updateSync(batteryUsageAH);
     BatteryTracking.updateAutonomously(this::usageSupplierAH);
     new Trigger(DriverStation::isDisabled)
         .onTrue(Commands.runOnce(BatteryTracking::manualAsyncUpdate));
