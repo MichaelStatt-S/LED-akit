@@ -76,13 +76,6 @@ public class DriveCommands {
           // Get linear velocity
           Translation2d linearVelocity =
               getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
-<<<<<<< HEAD
-          if (linearVelocity.getNorm() < 0.1) {
-            drive.brake();
-            return;
-          }
-=======
->>>>>>> parent of ec06d49 (add brake functionality (untested))
 
           // Apply rotation deadband
           double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
