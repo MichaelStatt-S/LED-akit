@@ -166,6 +166,7 @@ public class BatteryTracking {
    * @throws NoSuchAlgorithmException If the pcsc daemon was not found.
    */
   private static void write(String data) throws NoSuchAlgorithmException, CardException {
+    System.out.println(data);
     ByteBuffer buffer = NFCUtils.createBuffer();
     int length = NDEFUtils.ndefLength(data);
     NFCUtils.addMifareHeader((short) length, buffer);
@@ -436,7 +437,7 @@ public class BatteryTracking {
 
       @Override
       public int compareTo(LogEntry o) {
-        return this.dateTime.compareTo(o.dateTime);
+        return -this.dateTime.compareTo(o.dateTime);
       }
     }
   }
