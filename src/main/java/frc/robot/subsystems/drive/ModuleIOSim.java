@@ -135,9 +135,12 @@ public class ModuleIOSim implements ModuleIO {
     turnClosedLoop = true;
     turnController.setSetpoint(rotation.getRadians());
   }
+<<<<<<< HEAD
 
   @Override
   public void brake() {
     setDriveOpenLoop(0);
   }
+=======
+>>>>>>> parent of ec06d49 (add brake functionality (untested))
 }
