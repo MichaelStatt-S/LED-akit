@@ -110,7 +110,7 @@ public class BatteryTracking {
     // already checked for null so suppress
     //noinspection SynchronizeOnNonFinalField
     synchronized (asyncThread) {
-      asyncThread.notify();
+      asyncThread.notifyAll();
     }
   }
 
@@ -166,7 +166,6 @@ public class BatteryTracking {
    * @throws NoSuchAlgorithmException If the pcsc daemon was not found.
    */
   private static void write(String data) throws NoSuchAlgorithmException, CardException {
-    System.out.println(data);
     ByteBuffer buffer = NFCUtils.createBuffer();
     int length = NDEFUtils.ndefLength(data);
     NFCUtils.addMifareHeader((short) length, buffer);
@@ -505,7 +504,6 @@ public class BatteryTracking {
       for (int i = 1; i < SECTORS; i++) {
         readSector(bytes, i, channel);
       }
-      System.out.printf("Took %d ns \n", System.nanoTime() - startTime);
       if (!IS_MIFARE) return bytes; // If its not mifare we are done
       bytes.position(0);
       if (!(bytes.get() == (byte) 0x03))

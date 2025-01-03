@@ -3,8 +3,6 @@ package frc.robot.util.BatteryTracking;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import java.io.FileWriter;
@@ -21,6 +19,7 @@ public class FrcBatteryTracking {
   /** Previous Battery's ID 0 = not attempted -1 = failed */
   private final int previousBatteryID = 0;
 
+  private boolean enabledLastCycle = false;
   private double batteryUsageAH = 0;
   private PowerDistribution powerDistribution = null;
 
@@ -46,8 +45,6 @@ public class FrcBatteryTracking {
         "Battery/LastUsed", insertedBattery.getLog().get(0).getDateTime().toString());
     BatteryTracking.updateSync(batteryUsageAH);
     BatteryTracking.updateAutonomously(this::usageSupplierAH);
-    new Trigger(DriverStation::isDisabled)
-        .onTrue(Commands.runOnce(BatteryTracking::manualAsyncUpdate));
   }
 
   public double usageSupplierAH() {
@@ -57,6 +54,9 @@ public class FrcBatteryTracking {
   public void periodic() {
     if (Constants.currentMode != Constants.Mode.REAL) {
       return;
+    }
+    if (enabledLastCycle && DriverStation.isDisabled()) {
+      BatteryTracking.manualAsyncUpdate();
     }
     double current = powerDistribution.getTotalCurrent();
     batteryUsageAH += (current * (Robot.defaultPeriodSecs / (60 * 60)));
@@ -71,6 +71,7 @@ public class FrcBatteryTracking {
             "Could not write battery file: " + e.getMessage(), e.getStackTrace());
       }
     }
+    enabledLastCycle = DriverStation.isEnabled();
   }
 
   private static class DriverStationLogger implements BatteryTracking.ProgramSpecificErrorHandling {
