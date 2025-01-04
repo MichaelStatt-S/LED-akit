@@ -18,9 +18,8 @@ import static frc.robot.util.PhoenixUtil.*;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.ControlRequest;
-import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
@@ -43,6 +42,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.generated.TunerConstants;
+import frc.robot.util.PhoenixUtil;
 import java.util.Queue;
 
 /**
@@ -94,6 +94,9 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final Debouncer turnConnectedDebounce = new Debouncer(0.5);
   private final Debouncer turnEncoderConnectedDebounce = new Debouncer(0.5);
 
+  private final Slot0Configs driveSlotConfigs;
+  private final Slot0Configs steerSlotConfigs;
+
   public ModuleIOTalonFX(SwerveModuleConstants constants) {
     this.constants = constants;
     driveTalon = new TalonFX(constants.DriveMotorId, TunerConstants.DrivetrainConstants.CANBusName);
@@ -101,6 +104,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     cancoder = new CANcoder(constants.CANcoderId, TunerConstants.DrivetrainConstants.CANBusName);
 
     // Configure drive motor
+    driveSlotConfigs = constants.DriveMotorGains;
     var driveConfig = constants.DriveMotorInitialConfigs;
     driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     driveConfig.Slot0 = constants.DriveMotorGains;
@@ -118,6 +122,8 @@ public class ModuleIOTalonFX implements ModuleIO {
 
     // Configure turn motor
     var turnConfig = new TalonFXConfiguration();
+    steerSlotConfigs = constants.SteerMotorGains;
+
     turnConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     turnConfig.Slot0 = constants.SteerMotorGains;
     turnConfig.Feedback.FeedbackRemoteSensorID = constants.CANcoderId;
@@ -258,5 +264,15 @@ public class ModuleIOTalonFX implements ModuleIO {
           case TorqueCurrentFOC -> positionTorqueCurrentRequest.withPosition(
               rotation.getRotations());
         });
+  }
+
+  @Override
+  public void setDrivePID(double kP, double kI, double kD, double kS, double kV) {
+    driveSlotConfigs.kP = kP;
+    driveSlotConfigs.kI = kI;
+    driveSlotConfigs.kD = kD;
+    driveSlotConfigs.kS = kS;
+    driveSlotConfigs.kV = kV;
+    PhoenixUtil.tryUntilOk(2, () -> driveTalon.getConfigurator().apply(driveSlotConfigs));
   }
 }

@@ -50,6 +50,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
+import frc.robot.util.LoggedTunableNumber;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -85,6 +86,12 @@ public class Drive extends SubsystemBase {
               TunerConstants.FrontLeft.SlipCurrent,
               1),
           getModuleTranslations());
+
+  private final LoggedTunableNumber driveKPTunableNumber;
+  private final LoggedTunableNumber driveKITunableNumber;
+  private final LoggedTunableNumber driveKDTunableNumber;
+  private final LoggedTunableNumber driveKSTunableNumber;
+  private final LoggedTunableNumber driveKVTunableNumber;
 
   static final Lock odometryLock = new ReentrantLock();
   private final GyroIO gyroIO;
@@ -156,6 +163,24 @@ public class Drive extends SubsystemBase {
                 (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+    if (Constants.tuningMode) {
+      driveKPTunableNumber =
+          new LoggedTunableNumber("Drive kP", TunerConstants.BackLeft.DriveMotorGains.kP);
+      driveKITunableNumber =
+          new LoggedTunableNumber("Drive kI", TunerConstants.BackLeft.DriveMotorGains.kI);
+      driveKDTunableNumber =
+          new LoggedTunableNumber("Drive kD", TunerConstants.BackLeft.DriveMotorGains.kD);
+      driveKSTunableNumber =
+          new LoggedTunableNumber("Drive kS", TunerConstants.BackLeft.DriveMotorGains.kS);
+      driveKVTunableNumber =
+          new LoggedTunableNumber("Drive kV", TunerConstants.BackLeft.DriveMotorGains.kV);
+    } else {
+      driveKPTunableNumber = null;
+      driveKITunableNumber = null;
+      driveKDTunableNumber = null;
+      driveKSTunableNumber = null;
+      driveKVTunableNumber = null;
+    }
   }
 
   @Override
@@ -215,6 +240,15 @@ public class Drive extends SubsystemBase {
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
+
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        this::updateDrivePID,
+        driveKPTunableNumber,
+        driveKITunableNumber,
+        driveKDTunableNumber,
+        driveKSTunableNumber,
+        driveKVTunableNumber);
   }
 
   /**
@@ -320,7 +354,6 @@ public class Drive extends SubsystemBase {
     }
     return output;
   }
-
   /** Returns the current odometry pose. */
   @AutoLogOutput(key = "Odometry/Robot")
   public Pose2d getPose() {
@@ -364,5 +397,16 @@ public class Drive extends SubsystemBase {
       new Translation2d(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
       new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
     };
+  }
+
+  private void updateDrivePID(double[] values) {
+    double kP = values[0];
+    double kI = values[1];
+    double kD = values[2];
+    double kS = values[3];
+    double kV = values[4];
+    for (int i = 0; i < 4; i++) {
+      modules[i].setDrivePID(kP, kI, kD, kS, kV);
+    }
   }
 }
